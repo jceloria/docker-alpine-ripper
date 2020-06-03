@@ -38,10 +38,13 @@ start_pre()
 	# Get the directory settings from the config file
 	datadir=$(awk -F' = ' '$1=="app_DataDir"{print $2}' /ripper/settings.conf | sed 's/["]//g')
 	destdir=$(awk -F' = ' '$1=="app_DestinationDir"{print $2}' /ripper/settings.conf | sed 's/["]//g')
-    mkdir -p "${datadir}" "${destdir}"
+	mkdir -p "${datadir}" "${destdir}"
 
 	# The location for the MakeMKV settings is very specific
-	install -D -m0644 /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
+	mkdir -p "${HOME}/.MakeMKV" && ln -s /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
+
+	# The whipper configuration
+	mkdir -p "${HOME}/.config/whipper" && ln -s /ripper/whipper.conf "${HOME}/.config/whipper/whipper.conf"
 
 	# Adjust permissions
 	chown -R "${USER_ID:=nobody}":"${GROUP_ID:=users}" "${datadir}" "${destdir}"
