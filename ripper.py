@@ -90,7 +90,7 @@ def get_drives():
     try:
         return cdio.get_devices_with_cap(pycdio.FS_MATCH_ALL, False)
     except IOError:
-        log.critical("Problem finding any CD-ROMs")
+        log.critical("Problem finding any optical drives.")
         sys.exit(1)
 
 
@@ -153,11 +153,11 @@ def on_uevent(action, device, source, cache):
     log.info('"{}" device changed to "{}"'.format(device, media))
 
     if media == 'dvd' or media == 'bd':
-        log.info('<insert ripping {} command here>'.format(media))
+        rip_video()
     elif media == 'audio':
-        log.info('<insert ripping {} command here>'.format(media))
+        rip_audio()
     elif media == 'open':
-        log.info('Your media was ejected')
+        log.info('Your media was ejected.')
     else:
         log.critical('What am I supposed to do with "{}"?'.format(media))
 
@@ -170,7 +170,7 @@ def reader(monitor, source, cache):
 
 # -------------------------------------------------------------------------------------------------------------------- #
 def signal_handler(signal_name):
-    log.info('got %s', signal_name)
+    log.info('got {}'.format(signal_name))
     asyncio.get_event_loop().stop()
 
 

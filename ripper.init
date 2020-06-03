@@ -43,8 +43,11 @@ start_pre()
 	# The location for the MakeMKV settings is very specific
 	mkdir -p "${HOME}/.MakeMKV" && ln -s /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
 
-	# The whipper configuration
-	mkdir -p "${HOME}/.config/whipper" && ln -s /ripper/whipper.conf "${HOME}/.config/whipper/whipper.conf"
+	# whipper configuration
+	mkdir -p /ripper/whipper
+	for i in "${HOME}/.config/whipper" "${HOME}/.local/share/whipper"; do
+		mkdir -p $i && ln -s /ripper/whipper $i
+	done
 
 	# Adjust permissions
 	chown -R "${USER_ID:=nobody}":"${GROUP_ID:=users}" "${datadir}" "${destdir}"
