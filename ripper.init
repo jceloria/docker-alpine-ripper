@@ -1,0 +1,70 @@
+#!/sbin/openrc-run
+
+command="/bin/ripper.py"
+command_background="true"
+pidfile="/run/${RC_SVCNAME}.pid"
+
+start_pre()
+{
+	# The existing udev init requires /dev to be mounted as devtmpfs
+	if [ ! -f "/run/udev.pid" ]; then
+		local rc=0
+		ebegin "Starting udevd"
+		start-stop-daemon -Sbmq -p "/run/udev.pid" -x "/sbin/udevd"
+		rc=$?
+		eend $rc "Failed to start udevd"
+	fi
+
+	# Generate machine id
+	if [ ! -f "/etc/machine-id" ]; then
+		cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id
+	fi
+
+	# Get the latest MakeMKV beta key and create default settings
+	if [ ! -f "/ripper/settings.conf" ]; then
+		mkdir -p /ripper/data
+		KEY=$(curl -s 'https://www.makemkv.com/forum/viewtopic.php?f=5&t=1053' | grep -Eo 'T-[[:alnum:]]{66}')
+		cat <<-EOF > /ripper/settings.conf
+			app_Key = "${KEY}"
+			app_DataDir = "/ripper/data"
+			app_DestinationDir = "/ripper/output"
+			app_DestinationType = "2"
+			app_ccextractor = "/usr/bin/ccextractor"
+		EOF
+
+		tar xf /opt/makemkv/share/MakeMKV/appdata.tar -C /ripper/data --exclude '*.gz' --exclude '*.bin'
+	fi
+
+	# Get the directory settings from the config file
+	datadir=$(awk -F' = ' '$1=="app_DataDir"{print $2}' /ripper/settings.conf | sed 's/["]//g')
+	destdir=$(awk -F' = ' '$1=="app_DestinationDir"{print $2}' /ripper/settings.conf | sed 's/["]//g')
+    mkdir -p "${datadir}" "${destdir}"
+
+	# The location for the MakeMKV settings is very specific
+	install -D -m0644 /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
+
+	# Adjust permissions
+	chown -R "${USER_ID:=nobody}":"${GROUP_ID:=users}" "${datadir}" "${destdir}"
+	chmod -R g+rw "${datadir}" "${destdir}"
+
+	export LD_PRELOAD="/opt/makemkv/lib/umask_wrapper.so"
+
+	return 0
+}
+
+stop()
+{
+	local rc=0
+
+	ebegin "Stopping ${name:-${RC_SVCNAME}}"
+	start-stop-daemon -Kq -p "${pidfile}"
+	rc=$?
+	[ $rc -eq 0 ] && rm -f "${pidfile}"
+	eend $rc "Failed to stop ${RC_SVCNAME}"
+
+	ebegin "Stopping udevd"
+	start-stop-daemon -Kq -p "/run/udev.pid"
+	rc=$?
+	[ $rc -eq 0 ] && rm -f "/run/udev.pid"
+	eend $rc "Failed to stop udevd"
+}
