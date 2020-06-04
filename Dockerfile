@@ -11,9 +11,9 @@ COPY . /tmp/build
 
 RUN cd /tmp/build && \
     apk add --no-cache --virtual .build-deps build-base cmake jq zlib-dev && \
-    apk --no-cache add curl ddrescue openrc py3-udev py3-pillow && \
+    apk --no-cache add curl cdparanoia ddrescue flac openrc py3-udev py3-pillow util-linux && \
     apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing whipper && \
-    patch -p0 < whipper/cdparanoia.patch && ./ccextractor/install-ccextractor.sh && udevadm hwdb --update && \
+    patch -p0 < whipper/alpine.patch && ./ccextractor/install-ccextractor.sh && udevadm hwdb --update && \
     install -m755 ripper.py /bin && install -m755 ripper.init /etc/init.d/ripper && rc-update add ripper && \
     runDeps=$( \
         scanelf -nBR /usr/lib/apache2 /usr/sbin/httpd | \
