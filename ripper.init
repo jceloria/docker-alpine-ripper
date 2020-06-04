@@ -46,7 +46,7 @@ start_pre()
 	# whipper configuration
 	mkdir -p /ripper/whipper
 	for i in "${HOME}/.config/whipper" "${HOME}/.local/share/whipper"; do
-		mkdir -p $i && ln -s /ripper/whipper $i
+		mkdir -p ${i%/*} && ln -s /ripper/whipper $i
 	done
 
 	# Adjust permissions

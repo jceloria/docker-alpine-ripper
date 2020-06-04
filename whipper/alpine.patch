@@ -1,0 +1,59 @@
+--- /usr/lib/python3.8/site-packages/whipper/program/cdparanoia.py.orig
++++ /usr/lib/python3.8/site-packages/whipper/program/cdparanoia.py
+@@ -277,10 +277,10 @@
+ 
+         bufsize = 1024
+         if self._overread:
+-            argv = ["cd-paranoia", "--stderr-progress",
++            argv = ["cdparanoia", "--stderr-progress",
+                     "--sample-offset=%d" % self._offset, "--force-overread", ]
+         else:
+-            argv = ["cd-paranoia", "--stderr-progress",
++            argv = ["cdparanoia", "--stderr-progress",
+                     "--sample-offset=%d" % self._offset, ]
+         if self._device:
+             argv.extend(["--force-cdrom-device", self._device, ])
+@@ -298,7 +298,7 @@
+                                          close_fds=True)
+         except OSError as e:
+             if e.errno == errno.ENOENT:
+-                raise common.MissingDependencyException('cd-paranoia')
++                raise common.MissingDependencyException('cdparanoia')
+ 
+             raise
+ 
+@@ -556,8 +556,8 @@
+ 
+ 
+ def getCdParanoiaVersion():
+-    getter = common.VersionGetter('cd-paranoia',
+-                                  ["cd-paranoia", "-V"],
++    getter = common.VersionGetter('cdparanoia',
++                                  ["cdparanoia", "-V"],
+                                   _VERSION_RE,
+                                   "%(version)s %(release)s")
+ 
+@@ -583,12 +583,12 @@
+     def __init__(self, device=None):
+         # cdparanoia -A *always* writes cdparanoia.log
+         self.cwd = tempfile.mkdtemp(suffix='.whipper.cache')
+-        self.command = ['cd-paranoia', '-A']
++        self.command = ['cdparanoia', '-A']
+         if device:
+             self.command += ['-d', device]
+ 
+     def commandMissing(self):
+-        raise common.MissingDependencyException('cd-paranoia')
++        raise common.MissingDependencyException('cdparanoia')
+ 
+     def readbyteserr(self, bytes_stderr):
+         self._output.append(bytes_stderr)
+@@ -603,7 +603,7 @@
+     def failed(self):
+         # cdparanoia exits with return code 1 if it can't determine
+         # whether it can defeat the audio cache
+-        output = "".join(self._output)
++        output = "".join(o.decode() for o in self._output)
+         m = _WARNING_RE.search(output)
+         if m or _ABORTING_RE.search(output):
+             self.defeatsCache = False

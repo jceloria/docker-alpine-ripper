@@ -157,9 +157,9 @@ def on_uevent(action, device, source, cache):
     elif media == 'audio':
         rip_audio()
     elif media == 'open':
-        log.info('Your media was ejected.')
+        log.info('The media was ejected.')
     else:
-        log.critical('What am I supposed to do with "{}"?'.format(media))
+        log.critical('Not sure what to do with "{}"?'.format(media))
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
