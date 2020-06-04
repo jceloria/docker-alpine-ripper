@@ -1,6 +1,6 @@
 #!/bin/sh
 
-SCRIPT_DIR="$(realpath ${0%/*})"
+SCRIPT_DIR="$(realpath ${0%/*})" && cd ${SCRIPT_DIR}
 
 CCEXTRACTOR_URL=https://api.github.com/repos/CCExtractor/ccextractor/releases/latest
 

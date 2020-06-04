@@ -1,5 +1,5 @@
---- /usr/lib/python3.8/site-packages/whipper/program/cdparanoia.py.orig
-+++ /usr/lib/python3.8/site-packages/whipper/program/cdparanoia.py
+--- whipper/program/cdparanoia.py.orig
++++ whipper/program/cdparanoia.py
 @@ -277,10 +277,10 @@
  
          bufsize = 1024
