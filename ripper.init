@@ -54,6 +54,7 @@ start_pre()
 	chmod -R g+rw "${datadir}" "${destdir}"
 
 	export LD_PRELOAD="/opt/makemkv/lib/umask_wrapper.so"
+	export PATH="${PATH}:/opt/makemkv/bin"
 
 	return 0
 }

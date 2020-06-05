@@ -25,7 +25,7 @@ RUN cd /tmp/build && \
 
 VOLUME /ripper
 
-ENV PATH="${PATH}:/opt/makemkv/bin"
+ENV PATH "${PATH}:/opt/makemkv/bin"
 
 ENTRYPOINT /sbin/openrc-init
 
