@@ -7,7 +7,7 @@ pidfile="/run/${RC_SVCNAME}.pid"
 start_pre()
 {
 	# The existing udev init requires /dev to be mounted as devtmpfs
-	if [ ! -f "/run/udev.pid" ]; then
+	if [[ ! -f "/run/udev.pid" ]]; then
 		local rc=0
 		ebegin "Starting udevd"
 		start-stop-daemon -Sbmq -p "/run/udev.pid" -x "/sbin/udevd"
@@ -16,12 +16,12 @@ start_pre()
 	fi
 
 	# Generate machine id
-	if [ ! -f "/etc/machine-id" ]; then
+	if [[ ! -f "/etc/machine-id" ]]; then
 		cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id
 	fi
 
 	# Get the latest MakeMKV beta key and create default settings
-	if [ ! -f "/ripper/settings.conf" ]; then
+	if [[ ! -f "/ripper/settings.conf" ]]; then
 		mkdir -p /ripper/data
 		KEY=$(curl -s 'https://www.makemkv.com/forum/viewtopic.php?f=5&t=1053' | grep -Eo 'T-[[:alnum:]]{66}')
 		cat <<-EOF > /ripper/settings.conf
@@ -41,7 +41,7 @@ start_pre()
 	mkdir -p "${datadir}" "${destdir}"
 
 	# The location for the MakeMKV settings is very specific
-	mkdir -p "${HOME}/.MakeMKV" && ln -s /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
+	mkdir -p "${HOME:=/root}/.MakeMKV" && ln -s /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
 
 	# whipper configuration
 	mkdir -p /ripper/whipper
