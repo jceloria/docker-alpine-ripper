@@ -121,64 +121,70 @@ def get_status():
         d.append(states.get(d[1]).get(d[3], 'unknown'))
 
     # Strip quotes from the output of makemkvcon and return a list of dictionaries
-    keys = ['index', 'visible', 'enabled', 'state', 'name', 'label', 'device', 'media']
+    keys = ['index', 'visible', 'enabled', 'state', 'name', 'label', 'drive', 'media']
     return [{k: v.strip('\"') for k, v in zip(keys, d)} for d in drives]
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def rip_audio(drive):
+def rip_audio(drive, output):
+    log.info('ripping audio from "{}" to "{}"...'.format(drive, output))
     vendor, model, release = whipper.common.drive.getDeviceInfo(drive)
     try:
         whipper.common.config.Config()._findDriveSection(vendor, model, release)
     except KeyError:
         log.info('Analyzing "{}"...'.format(drive))
-        cmd = whipper.command.main.Whipper(['drive', 'analyze', '-d', drive], 'whipper', None)
+        args = ['drive', 'analyze', '-d', drive]
+        cmd = whipper.command.main.Whipper(args, 'whipper', None)
         cmd.do()
 
     try:
         whipper.common.config.Config().getReadOffset(vendor, model, release)
     except KeyError:
         log.info('Finding offset for "{}"...'.format(drive))
-        cmd = whipper.command.main.Whipper(['offset', 'find', '-d', drive], 'whipper', None)
+        args = ['offset', 'find', '-d', drive]
+        cmd = whipper.command.main.Whipper(args, 'whipper', None)
         cmd.do()
 
-    offset = whipper.common.config.Config().getReadOffset(vendor, model, release)
-    print(offset)
+    args = ['cd', '-d', drive, 'rip', '-O', output, '-W', os.path.dirname(output)]
+    cmd = whipper.command.main.Whipper(args, whipper, None)
+    cmd.do()
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def rip_video():
-    log.info('ripping video!')
+def rip_video(drive, output):
+    log.info('ripping video from "{}" to "{}"...'.format(drive, output))
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def get_property(device, key):
-    return device.properties[key]
+def get_property(drive, key):
+    return drive.properties[key]
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def iter_properties(device):
-    for key in device.properties:
+def iter_properties(drive):
+    for key in drive.properties:
         yield key
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def on_uevent(action, device, source, cache):
-    log.info('{} {} ({})'.format(source, device.sys_path, device.subsystem))
+def on_uevent(action, drive, source, cache):
+    log.info('{} {} ({})'.format(source, drive.sys_path, drive.subsystem))
 
     properties = {}
-    for key in iter_properties(device):
-        properties[key] = get_property(device, key)
-        cache[device.sys_path] = properties
+    for key in iter_properties(drive):
+        properties[key] = get_property(drive, key)
+        cache[drive.sys_path] = properties
 
-    status = next((item for item in get_status() if item["device"] == properties.get('DEVNAME')), None)
-    device, media = status.get('device'), status.get('media')
-    log.info('"{}" device changed to "{}"'.format(device, media))
+    status = next((item for item in get_status() if item["drive"] == properties.get('DEVNAME')), None)
+    drive, media = status.get('drive'), status.get('media')
+    log.info('"{}" drive changed to "{}"'.format(drive, media))
+
+    output = Path(CONFIG.get('app_DestinationDir').strip('"'), media)
 
     if media == 'dvd' or media == 'bd':
-        rip_video()
+        rip_video(drive, output)
     elif media == 'audio':
-        rip_audio()
+        rip_audio(drive, output)
     elif media == 'open':
         log.info('The media was ejected.')
     else:
@@ -187,8 +193,8 @@ def on_uevent(action, device, source, cache):
 
 # -------------------------------------------------------------------------------------------------------------------- #
 def reader(monitor, source, cache):
-    action, device = monitor.receive_device()
-    on_uevent(action, device, source, cache)
+    action, drive = monitor.receive_device()
+    on_uevent(action, drive, source, cache)
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -199,9 +205,7 @@ def signal_handler(signal_name):
 
 # main --------------------------------------------------------------------------------------------------------------- #
 def main():
-    rip_audio('/dev/sr1')
-    return
-    log.info('Found devices: {}'.format(get_drives()))
+    log.info('Found drives: {}'.format(get_drives()))
 
     context = pyudev.Context()
     loop = asyncio.get_event_loop()
