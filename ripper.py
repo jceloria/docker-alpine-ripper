@@ -42,6 +42,13 @@ import re
 import signal
 import sys
 
+try:
+    import whipper.command.main
+    import whipper.common
+except ImportError:
+    print('There was a problem importing whipper.', file=sys.stderr)
+    sys.exit(-1)
+
 # Set some defaults -------------------------------------------------------------------------------------------------- #
 __author__ = 'John Celoria'
 __version__ = '0.1'
@@ -119,8 +126,24 @@ def get_status():
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def rip_audio():
-    log.info('ripping audio!')
+def rip_audio(drive):
+    vendor, model, release = whipper.common.drive.getDeviceInfo(drive)
+    try:
+        whipper.common.config.Config()._findDriveSection(vendor, model, release)
+    except KeyError:
+        log.info('Analyzing "{}"...'.format(drive))
+        cmd = whipper.command.main.Whipper(['drive', 'analyze', '-d', drive], 'whipper', None)
+        cmd.do()
+
+    try:
+        whipper.common.config.Config().getReadOffset(vendor, model, release)
+    except KeyError:
+        log.info('Finding offset for "{}"...'.format(drive))
+        cmd = whipper.command.main.Whipper(['offset', 'find', '-d', drive], 'whipper', None)
+        cmd.do()
+
+    offset = whipper.common.config.Config().getReadOffset(vendor, model, release)
+    print(offset)
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -176,6 +199,8 @@ def signal_handler(signal_name):
 
 # main --------------------------------------------------------------------------------------------------------------- #
 def main():
+    rip_audio('/dev/sr1')
+    return
     log.info('Found devices: {}'.format(get_drives()))
 
     context = pyudev.Context()
