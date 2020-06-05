@@ -145,8 +145,8 @@ def rip_audio(drive, output):
         cmd = whipper.command.main.Whipper(args, 'whipper', None)
         cmd.do()
 
-    args = ['cd', '-d', drive, 'rip', '-O', output, '-W', os.path.dirname(output)]
-    cmd = whipper.command.main.Whipper(args, whipper, None)
+    args = ['cd', '-d', drive, 'rip', '-O', str(output), '-W', os.path.dirname(output)]
+    cmd = whipper.command.main.Whipper(args, 'whipper', None)
     cmd.do()
 
 
