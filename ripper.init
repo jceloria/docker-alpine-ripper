@@ -29,10 +29,15 @@ start_pre()
 			app_DataDir = "/ripper/data"
 			app_DestinationDir = "/ripper/output"
 			app_DestinationType = "2"
+			app_PreferredLanguage = "eng"
 			app_ccextractor = "/usr/bin/ccextractor"
+			app_DefaultProfileName = "default"
+			app_BackupDecrypted = "1"
+			dvd_MinimumTitleLength = "600"
 		EOF
 
 		tar xf /opt/makemkv/share/MakeMKV/appdata.tar -C /ripper/data --exclude '*.gz' --exclude '*.bin'
+		sed -i 's|\(<name lang.*>\).*\(</name>\)|\1default\2|g' /ripper/data/default.mmcp.xml
 	fi
 
 	# Get the directory settings from the config file
@@ -41,12 +46,12 @@ start_pre()
 	mkdir -p "${datadir}" "${destdir}"
 
 	# The location for the MakeMKV settings is very specific
-	mkdir -p "${HOME:=/root}/.MakeMKV" && ln -s /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
+	mkdir -p "${HOME:=/root}/.MakeMKV" && ln -sf /ripper/settings.conf "${HOME}/.MakeMKV/settings.conf"
 
 	# whipper configuration
 	mkdir -p /ripper/whipper
 	for i in "${HOME}/.config/whipper" "${HOME}/.local/share/whipper"; do
-		mkdir -p ${i%/*} && ln -s /ripper/whipper $i
+		mkdir -p ${i%/*} && ln -sf /ripper/whipper $i
 	done
 
 	# Adjust permissions
