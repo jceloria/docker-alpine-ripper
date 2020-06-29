@@ -179,8 +179,10 @@ def rip_video(index, drive, output):
         log.info("Ejecting `{}`".format(drive))
         d = cdio.Device(drive)
         d.eject_media()
-    except IOError:
-        log.warning("Unable to eject `{}`".format(drive))
+    except cdio.DriverUnsupportedError:
+        log.warning("Eject not supported for `{}`".format(drive))
+    except cdio.DeviceException:
+        log.warning("Eject of CD-ROM drive `{}` failed".format(drive))
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
