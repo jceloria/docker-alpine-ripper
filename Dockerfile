@@ -12,8 +12,8 @@ COPY . /tmp/build
 RUN cd /tmp/build && \
     apk add --no-cache --virtual .build-deps build-base cairo-dev cmake git gobject-introspection-dev \
         jq libcdio-dev libsndfile-dev python3-dev swig zlib-dev && \
-    apk --no-cache add curl cdparanoia ddrescue flac libcdio libdiscid openrc py3-udev py3-pillow sox \
-        util-linux && \
+    apk --no-cache add curl cdparanoia ddrescue flac libcdio libdiscid openjdk11-jre-headless openrc \
+        py3-udev py3-pillow sox util-linux && \
     apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing cdrdao && \
     ./ccextractor/install-ccextractor.sh && ./whipper/install-whipper.sh && udevadm hwdb --update && \
     install -m755 ripper.py /bin && install -m755 ripper.init /etc/init.d/ripper && rc-update add ripper && \
