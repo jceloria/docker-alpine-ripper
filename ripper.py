@@ -175,8 +175,12 @@ def rip_video(index, drive, output):
 
     log.info('Exit status: {}'.format(p.poll()))
 
-    d = cdio.Device(drive)
-    d.eject_media()
+    try:
+        log.info("Ejecting `{}`".format(drive))
+        d = cdio.Device(drive)
+        d.eject_media()
+    except IOError:
+        log.warning("Unable to eject `{}`".format(drive))
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
