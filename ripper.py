@@ -30,6 +30,7 @@
 """
 # Library imports ---------------------------------------------------------------------------------------------------- #
 from pathlib import Path
+from subprocess import Popen, PIPE
 import asyncio
 import cdio
 import configparser
@@ -39,6 +40,7 @@ import os
 import pycdio
 import pyudev
 import re
+import shlex
 import signal
 import sys
 
@@ -151,8 +153,30 @@ def rip_audio(drive, output):
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
-def rip_video(drive, output):
+def rip_video(index, drive, output):
     log.info('ripping video from "{}" to "{}"...'.format(drive, output))
+
+    try:
+        dest = Path(output)
+        dest.mkdir(exist_ok=True, parents=True)
+    except IOError:
+        log.critical("Unable to make directory `{}`.".format(output))
+        sys.exit(1)
+
+    cmd = 'makemkvcon -r mkv disc:{} all {}'.format(re.sub("[^0-9]", "", index), output)
+    p = Popen(shlex.split(cmd), shell=False, stdout=PIPE, universal_newlines=True)
+
+    while True:
+        output = p.stdout.readline()
+        if p.poll() is not None:
+            break
+        if output:
+            log.info(output.strip())
+
+    log.info('Exit status: {}'.format(p.poll()))
+
+    d = cdio.Device(drive)
+    d.eject_media()
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -176,13 +200,13 @@ def on_uevent(action, drive, source, cache):
         cache[drive.sys_path] = properties
 
     status = next((item for item in get_status() if item["drive"] == properties.get('DEVNAME')), None)
-    drive, media = status.get('drive'), status.get('media')
+    index, drive, media = status.get('index'), status.get('drive'), status.get('media')
     log.info('"{}" drive changed to "{}"'.format(drive, media))
 
     output = Path(CONFIG.get('app_DestinationDir').strip('"'), media)
 
     if media == 'dvd' or media == 'bd':
-        rip_video(drive, output)
+        rip_video(index, drive, output)
     elif media == 'audio':
         rip_audio(drive, output)
     elif media == 'open':
