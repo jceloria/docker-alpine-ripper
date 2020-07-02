@@ -14,7 +14,7 @@ on:
   pull_request:
 
 env:
-  IMAGE_NAME: docker-alpine-ripper
+  IMAGE_NAME: alpine-ripper
   TAG: "latest"
 
 jobs:
